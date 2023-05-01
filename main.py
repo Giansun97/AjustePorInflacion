@@ -3,13 +3,23 @@ import numpy as np
 from functions import calcular_coeficiente, unir_dataframes, limpiar_df_gastos
 import openpyxl
 import xlrd
+import datetime
+
+excel_indices: str = input('Ingrese la ubicación donde se encuentra el archivo de indices')
+excel_gastos: str = input('Ingrese la ubicación donde se encuentra el archivo de gastos/ingresos')
+fecha_numerador = datetime.datetime.strptime(input('Ingrese la fecha de cierre de balance (formato: AAAA-MM-DD): '),
+                                             '%Y-%m-%d').date().replace(day=1)
 
 
-def calcular_ajuste(excel_indices: str, excel_gastos: str) -> None:
+def calcular_ajuste(excel_indices: str, excel_gastos: str, fecha_numerador) -> None:
+    print('AJUSTE POR INFLACION')
+    print('-------------')
+    print('Iniciando ajuste ... ')
+
     # leer excels con la informacion y realizar limpieza de los datos
     df_indices = (
         pd.read_excel(excel_indices)
-            .pipe(calcular_coeficiente, fecha_numerador='2021-12-01')
+            .pipe(calcular_coeficiente, fecha_numerador=fecha_numerador)
             .assign(month=lambda x: x['mes'].dt.month)
             .drop(columns=['mes'])
     )
@@ -33,14 +43,11 @@ def calcular_ajuste(excel_indices: str, excel_gastos: str) -> None:
     # Creamos la pivot table resumen
     pivot = pd.pivot_table(df_merge, index=['Cuenta'], values='recpam', aggfunc=np.sum)
 
+    print('Guardando en excel los resultados ... ')
     # Exportamos la pivot y el WP a excel
     pivot.to_excel('resumen_recpam.xlsx', )
     df_merge.to_excel('wp_ajuste.xlsx', index=False)
 
 
-# Definir variables con nombre de los archivos
-if __name__ == "__main__":
-    excel_indices: str = input('Ingrese el archivo de indices')
-    excel_gastos: str = input('Ingrese el archivo de gastos a ajustar')
-
-    calcular_ajuste(excel_indices, excel_gastos)
+calcular_ajuste(excel_indices, excel_gastos, fecha_numerador)
+print('Proceso Finalizado')

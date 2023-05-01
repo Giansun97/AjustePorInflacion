@@ -19,7 +19,8 @@ def calcular_coeficiente(df, fecha_numerador,
 
         df: data frame de indices con una nueva columna que contiene los coeficientes ya calculados.
     """
-    df[columna_fecha] = pd.to_datetime(df[columna_fecha], errors='coerce', format='%d%m%Y')
+    df[columna_fecha] = pd.to_datetime(df[columna_fecha], errors='coerce', format='%y-%m%-d')
+    fecha_numerador = pd.to_datetime(fecha_numerador, format='%Y-%m-%d')
     diciembre = df.loc[df[columna_fecha] == fecha_numerador, columna_ipc].iloc[0]
     df['coeficiente'] = diciembre / df[columna_ipc]
 
